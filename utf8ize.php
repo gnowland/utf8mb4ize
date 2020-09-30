@@ -8,15 +8,15 @@
  * Author URI: https://giffordnowland.com, http://www.presslabs.com/
  */
 
-add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'utf8ize_settings_link' );
-function utf8ize_settings_link( $links ) {
+add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'utf8mb4ize_settings_link' );
+function utf8mb4ize_settings_link( $links ) {
 	$settings_link = '<a href="tools.php?page=' . plugin_basename( __FILE__ ) . '">' . __( 'Settings' ) . '</a>';
 	array_unshift( $links, $settings_link );
 
 	return $links;
 }
 
-function utf8ize_generator() {
+function utf8mb4ize_generator() {
 	$link = mysqli_connect( DB_HOST, DB_USER, DB_PASSWORD );
 	if (!$link) {
 		 die( 'Could not connect: ' . mysqli_connect_error() );
@@ -126,9 +126,9 @@ function utf8ize_generator() {
 	echo ";\n";
 }
 
-function utf8ize_options() {
+function utf8mb4ize_options() {
 	if ( isset( $_POST['submit_settings'] ) ) {
-		utf8ize_update_options();
+		utf8mb4ize_update_options();
 	}
 
 	isset( $_GET['tab'] ) ? $selected_tab = $_GET['tab'] : $selected_tab = 'generator';
@@ -145,7 +145,7 @@ function utf8ize_options() {
 	<p>If you run the following SQL statements, you will convert all your database character sets to utf8mb4, to stay in line with <a href="https://make.wordpress.org/core/2015/04/02/the-utf8mb4-upgrade/">WordPress recommendations</a>.<br />
 	It works by scanning all you tables and columns and generating a list of SQL statements which allow you to convert to convert your content to utf8mb4.</p>
 	<h3><span style="color:red;"><strong>!!! CAUTION !!!</strong><br />The execution time of the next SQL statements may take a lot of time(even days), related to dimensions of your database and the amount of the content.</span></h3>
-	<textarea cols="100" rows="20"><?php utf8ize_generator(); ?></textarea>
+	<textarea cols="100" rows="20"><?php utf8mb4ize_generator(); ?></textarea>
 <?php } ?>
 
 <?php if ( 'documentation' === $selected_tab ) { ?>
@@ -173,7 +173,7 @@ function utf8ize_options() {
 <?php
 }
 
-add_action( 'admin_menu', 'utf8ize_menu' );
-function utf8ize_menu() {
-	add_management_page( 'Utf8ize - Options', 'Utf8ize', 'administrator', __FILE__, 'utf8ize_options' );
+add_action( 'admin_menu', 'utf8mb4ize_menu' );
+function utf8mb4ize_menu() {
+	add_management_page( 'Utf8mb4ize - Options', 'Utf8mb4ize', 'administrator', __FILE__, 'utf8mb4ize_options' );
 }
