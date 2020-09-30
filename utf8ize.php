@@ -1,11 +1,11 @@
 <?php
 /**
- * Plugin Name: Utf8ize
- * Plugin URI: http://wordpress.org/extend/plugins/utf8ize/
- * Description: Convert all your database character sets to utf8, trying to follow Codex guides. The plugin return SQL statements and you have to run it manually to apply the conversion.
- * Author: PressLabs
- * Version: 1.1
- * Author URI: http://www.presslabs.com/
+ * Plugin Name: Utf8mb4ize
+ * Plugin URI: http://wordpress.org/extend/plugins/utf8mb4ize/
+ * Description: Convert all your database character sets to utf8mb4, as recommended by WordPress. The plugin return SQL statements and you have to run it manually to apply the conversion.
+ * Author: gnowland, Presslabs
+ * Version: 2.0
+ * Author URI: https://giffordnowland.com, http://www.presslabs.com/
  */
 
 add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'utf8ize_settings_link' );
@@ -137,13 +137,13 @@ function utf8ize_options() {
 
 <div id="icon-tools" class="icon32">&nbsp;</div>
 <h2 class="nav-tab-wrapper">
-<a class="nav-tab<?php if ( 'generator' == $selected_tab ) { echo ' nav-tab-active'; } ?>" href="tools.php?page=utf8ize/utf8ize.php&tab=generator">SQL generator</a>
-<a class="nav-tab<?php if ( 'documentation' == $selected_tab ) { echo ' nav-tab-active'; } ?>" href="tools.php?page=utf8ize/utf8ize.php&tab=documentation">Documentation</a>
+<a class="nav-tab<?php if ( 'generator' == $selected_tab ) { echo ' nav-tab-active'; } ?>" href="tools.php?page=utf8mb4ize/utf8mb4ize.php&tab=generator">SQL generator</a>
+<a class="nav-tab<?php if ( 'documentation' == $selected_tab ) { echo ' nav-tab-active'; } ?>" href="tools.php?page=utf8mb4ize/utf8mb4ize.php&tab=documentation">Documentation</a>
 </h2>
 
 <?php if ( 'generator' === $selected_tab ) { ?>
-	<p>If you run the following SQL statements, you will convert all your database character sets to utf8, trying to follow <strong><a href="http://codex.wordpress.org/Converting_Database_Character_Sets">Codex guides</a></strong>. <br /><br />You should use this if you are experiencing double utf8 encoding. You can check this by setting <strong>DB_CHARSET</strong> in your <strong>wp-config.php</strong> file to <strong>latin1</strong> or commenting the line; if your characters look good now on your site than you are probably suffering from this issue.
-	It works by scanning all you tables and columns and generating a list of SQL statements which allow you to convert to convert your content to uft8.</p>
+	<p>If you run the following SQL statements, you will convert all your database character sets to utf8mb4, to stay in line with <a href="https://make.wordpress.org/core/2015/04/02/the-utf8mb4-upgrade/">WordPress recommendations</a>.<br />
+	It works by scanning all you tables and columns and generating a list of SQL statements which allow you to convert to convert your content to utf8mb4.</p>
 	<h3><span style="color:red;"><strong>!!! CAUTION !!!</strong><br />The execution time of the next SQL statements may take a lot of time(even days), related to dimensions of your database and the amount of the content.</span></h3>
 	<textarea cols="100" rows="20"><?php utf8ize_generator(); ?></textarea>
 <?php } ?>
@@ -154,15 +154,17 @@ function utf8ize_options() {
 	<h2>The History</h2>
 	<p>Up to and including WordPress Version 2.1.3, most WordPress databases were created using the latin1 character set and the latin1_swedish_ci collation.</p>
 	<p>Beginning with Version 2.2, both the database character set and the collation can be defined in the wp-config.php file. Setting the DB_CHARSET and DB_COLLATE values in wp-config.php causes WordPress to create the database with the appropriate charset settings. The default is UTF8, the standard charset for modern data which supports all internet-friendly languages.</p>
+	<p>Beginning with Version 4.2, WordPress changed the default to UTF8MB4. The difference between utf8 and utf8mb4 is that the former can only store 3 byte characters, while the latter can store 4 byte characters. In Unicode terms, utf8 can only store characters in the Basic Multilingual Plane, while utf8mb4 can store any Unicode character. This greatly expands the language usability of WordPress, especially in countries that use Han character sets.</p>
+	<p>utf8mb4 is 100% backwards compatible with utf8.</p>
 	<p>Note that in addition to setting the format of any new tables created by WordPress the DB_CHARSET property defines the format of content sent to your database and the expected format of content retrieved from it. It does not alter the format of existing tables, so if you have tables formatted with a different character set from the one in DB_CHARSET the results will be eratic both in terms of fetching and saving text.</p>
 	<p>The rest of this article will explain how to convert the character set and collation for existing WordPress installations.</p>
 
 	<h2>The basics of converting a database</h2>
 	<p>Before beginning any conversion, please back up your database. The Backing Up Your Database article has easy-to-follow instructions.</p>
 	<p>Note: If you don't know anything about SQL and MySQL you are probably screwed. This is voodoo-code territory, so you may want to RTFM about MySQL and Charsets before continuing.</p>
-	<p>The goal in these conversions is always to decide on what charset/collation combination you want to use (UTF8 being the best choice in almost all scenarios) then to convert all tables/columns in your database to use that charset. At that point you can set DB_COLLATE and DB_CHARSET to the desired charset and collation to match.</p>
-	<p>Note: In most cases if a collation is not defined MySQL will assume the default collation for the CHARSET which is specified. For UTF8 the default is utf8_general_ci, which is usually the right choice.</p>
-	<p>In the examples below it is assumed you have a database in the latin1 character set that needs converting to a utf8 character set. latin1 is the tragic default of MySQL and the most likely to be the problematic format of older copies of WordPress. UFT8 is the best way to support all internet-friendly languages.</p>
+	<p>The goal in these conversions is always to decide on what charset/collation combination you want to use (UTF8MB4 being the best choice in almost all scenarios) then to convert all tables/columns in your database to use that charset. At that point you can set DB_COLLATE and DB_CHARSET to the desired charset and collation to match.</p>
+	<p>Note: In most cases if a collation is not defined MySQL will assume the default collation for the CHARSET which is specified. For UTF8MB4 the default is utf8_general_ci, which is usually the right choice.</p>
+	<p>In the examples below it is assumed you have a database in the utf8 character set that needs converting to a utf8mb4 character set. utf8 is the most likely format of older copies of WordPress. UTF8MB4 is the best way to support all internet-friendly languages.</p>
 
 	<strong>The rest of the story is <a href="http://codex.wordpress.org/Converting_Database_Character_Sets">here</a>.<strong>
 <?php } ?>
