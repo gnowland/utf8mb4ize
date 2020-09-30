@@ -1,11 +1,13 @@
 <?php
 /**
  * Plugin Name: Utf8mb4ize
- * Plugin URI: http://wordpress.org/extend/plugins/utf8mb4ize/
+ * Plugin URI: https://github.com/gnowland/utf8mb4ize
  * Description: Convert all your database character sets to utf8mb4, as recommended by WordPress. The plugin return SQL statements and you have to run it manually to apply the conversion.
- * Author: gnowland, Presslabs
+ * Author: gnowland
+ * Contributor: Presslabs
  * Version: 2.0
- * Author URI: https://giffordnowland.com, http://www.presslabs.com/
+ * Author URI: https://github.com/gnowland/utf8mb4ize
+ * Contributor URI: http://www.presslabs.com/
  */
 
 add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'utf8mb4ize_settings_link' );
