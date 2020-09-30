@@ -17,17 +17,20 @@ function utf8ize_settings_link( $links ) {
 }
 
 function utf8ize_generator() {
-	mysql_connect( DB_HOST, DB_USER, DB_PASSWORD ) or die( 'Could not connect: ' . mysql_error() );
-	mysql_set_charset( DB_CHARSET ) or die( 'Could not set charset: ' . mysql_error() );
-	mysql_select_db( DB_NAME ) or die( 'Could not select database: ' . mysql_error() );
+	$link = mysqli_connect( DB_HOST, DB_USER, DB_PASSWORD );
+	if (!$link) {
+		 die( 'Could not connect: ' . mysqli_connect_error() );
+	}
+	mysqli_set_charset( $link, DB_CHARSET ) or die( 'Could not set charset: ' . mysqli_error( $link ) );
+	mysqli_select_db( $link, DB_NAME ) or die( 'Could not select database: ' . mysqli_error( $link ) );
 
-	$db_collate = ( ! defined( 'DB_COLLATE' ) || '' == DB_COLLATE ? 'utf8_unicode_ci' : DB_COLLATE );
+	$db_collate = ( ! defined( 'DB_COLLATE' ) || '' == DB_COLLATE ? 'utf8mb4_unicode_ci' : DB_COLLATE );
 
-	function mysql_get_results( $query, $die_on_error = true ) {
-		$result = mysql_query( $query );
+	function mysql_get_results( $link, $query, $die_on_error = true ) {
+		$result = mysqli_query( $link, $query );
 		if ( false === $result ) {
 			echo "Error on query: $query\n";
-			echo "\t" . mysql_error();
+			echo "\t" . mysqli_error( $link );
 			echo "\n";
 			if ( $die_on_error ) {
 				exit(1);
@@ -37,22 +40,22 @@ function utf8ize_generator() {
 			return true;
 		}
 		$_ret = array();
-		while ( $row = mysql_fetch_assoc( $result ) ) {
+		while ( $row = mysqli_fetch_assoc( $result ) ) {
 			$_ret[] = $row;
 		}
 
 		return $_ret;
 	}
 
-	$statements = array( 'ALTER DATABASE ' . DB_NAME . ' CHARACTER SET utf8 COLLATE ' . $db_collate );
+	$statements = array( 'ALTER DATABASE ' . DB_NAME . ' CHARACTER SET utf8mb4 COLLATE ' . $db_collate );
 	$statements[] = 'USE `' . DB_NAME . '`';
 
 	$tables = array();
-	$results = mysql_get_results( 'SHOW TABLE STATUS' );
+	$results = mysql_get_results( $link, 'SHOW TABLE STATUS' );
 	foreach ( $results as $row ) {
 		$tables[] = $row['Name'];
-		if ( ! preg_match( '/utf8_/', $row['Collation'] ) ) {
-			$statements[] = 'ALTER TABLE `' . $row['Name'] . '` DEFAULT CHARACTER SET utf8 COLLATE ' . $db_collate;
+		if ( ! preg_match( '/utf8mb4_/', $row['Collation'] ) ) {
+			$statements[] = 'ALTER TABLE `' . $row['Name'] . '` DEFAULT CHARACTER SET utf8mb4 COLLATE ' . $db_collate;
 		}
 	}
 
@@ -65,8 +68,8 @@ function utf8ize_generator() {
 	);
 
 	foreach ( $tables as $table ) {
-		$columns  = mysql_get_results( 'SHOW FULL COLUMNS FROM `' . $table . '`' );
-		$indexes  = mysql_get_results( 'SHOW INDEX FROM `' . $table . '`' );
+		$columns  = mysql_get_results( $link, 'SHOW FULL COLUMNS FROM `' . $table . '`' );
+		$indexes  = mysql_get_results( $link, 'SHOW INDEX FROM `' . $table . '`' );
 		$fulltext = array();
 		foreach ( $indexes as $index ) {
 			if ( $index['Index_type'] != 'FULLTEXT' ) {
@@ -80,7 +83,7 @@ function utf8ize_generator() {
 		$_fulltext = array();
 
 		foreach ( $columns as $column ) {
-			if ( ! preg_match( '/utf8_/', $column['Collation'] ) ) {
+			if ( ! preg_match( '/utf8mb4_/', $column['Collation'] ) ) {
 				foreach ( $fulltext as $index_name => $index ) {
 					if ( in_array( $column['Field'], $index ) ) {
 						$statements[] = "ALTER TABLE `$table` DROP INDEX `$index_name`";
@@ -95,21 +98,21 @@ function utf8ize_generator() {
 			if ( $column['Collation'] == '' ) {
 				continue;
 			}
-			if ( ! preg_match( '/utf8_/', $column['Collation'] ) ) {
+			if ( ! preg_match( '/utf8mb4_/', $column['Collation'] ) ) {
 				$c    = '';
 				$type = strtoupper( $column['Type'] );
 				if ( preg_match( '/^(ENUM|SET)/', $type ) ) {
 					$null         = ( $column['Null'] == 'NO' ? 'NOT NULL' : 'NULL' );
-					$default      = ( $column['Default'] ? 'DEFAULT \'' . mysql_real_escape_string( $column['Default'] ) . '\'' : '' );
-					$statements[] = trim( "ALTER TABLE `$table` CHANGE $column[Field] $column[Field] $type CHARACTER SET utf8 $null $default" );
+					$default      = ( $column['Default'] ? 'DEFAULT \'' . mysqli_real_escape_string( $column['Default'] ) . '\'' : '' );
+					$statements[] = trim( "ALTER TABLE `$table` CHANGE $column[Field] $column[Field] $type CHARACTER SET utf8mb4 $null $default" );
 				} else {
 					$btype = str_replace( array_keys( $_types ), $_types, $type );
 					if ( $type != $btype ) {
 						$statements[] = "ALTER TABLE `$table` CHANGE `$column[Field]` `$column[Field]` $btype";
-						$statements[] = "ALTER TABLE `$table` CHANGE `$column[Field]` `$column[Field]` $type CHARACTER SET utf8 COLLATE $db_collate";
+						$statements[] = "ALTER TABLE `$table` CHANGE `$column[Field]` `$column[Field]` $type CHARACTER SET utf8mb4 COLLATE $db_collate";
 					} else {
 						fprintf( STDERR, "WARNING: No binary equivalent for $type. Data scrambling is likely to occur.\n" );
-						$statements[] = "ALTER TABLE `$table` CHANGE `$column[Field]` `$column[Field]` $type CHARACTER SET utf8 COLLATE $db_collate";
+						$statements[] = "ALTER TABLE `$table` CHANGE `$column[Field]` `$column[Field]` $type CHARACTER SET utf8mb4 COLLATE $db_collate";
 					}
 				}
 			}
